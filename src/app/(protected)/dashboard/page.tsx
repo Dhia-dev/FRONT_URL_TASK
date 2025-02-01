@@ -22,10 +22,11 @@ export default function DashboardPage() {
       setUrl("");
     },
   });
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (url: any) => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopiedUrl(text);
+      const fullUrl = `${process.env.NEXT_PUBLIC_API_URL}/${url}`;
+      await navigator.clipboard.writeText(fullUrl);
+      setCopiedUrl(url);
 
       setTimeout(() => {
         setCopiedUrl(null);
@@ -52,8 +53,9 @@ export default function DashboardPage() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Enter URL to shorten"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-md  focus:border-blue-500"
             required
+            pattern="https?://.+"
           />
           <button
             type="submit"
@@ -77,14 +79,14 @@ export default function DashboardPage() {
                 <p className="text-sm text-gray-500">Short URL</p>
                 <div className="flex items-center gap-2">
                   <Link
-                    href={url.shortUrl}
+                    href={`${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`}
                     target="_blank"
                     className="text-blue-600 hover:text-blue-800 truncate"
                   >
                     {url.shortUrl}
                   </Link>
                   <button
-                    onClick={() => copyToClipboard(url.shortUrl)}
+                    onClick={() => copyToClipboard(url.shortCode)}
                     className="p-1 hover:bg-gray-100 rounded relative group"
                   >
                     {copiedUrl === url.shortUrl ? (
