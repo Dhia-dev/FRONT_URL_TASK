@@ -5,8 +5,8 @@ export const urlService = {
     const { data } = await api.post("/", { originalUrl });
     return data;
   },
-  getUserUrls: async () => {
-    const { data } = await api.get("/");
+  getUserUrls: async (page: number = 1, limit: number = 5) => {
+    const { data } = await api.get(`/?page=${page}&limit=${limit}`);
     return data;
   },
 

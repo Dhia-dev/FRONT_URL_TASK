@@ -9,11 +9,29 @@ import Swal from "sweetalert2";
 export default function DashboardPage() {
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [url, setUrl] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 5;
   const queryClient = useQueryClient();
+  interface PaginatedResponse {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    data: UrlData[];
+  }
 
-  const { data: urls = [] } = useQuery({
-    queryKey: ["urls"],
-    queryFn: urlService.getUserUrls,
+  interface UrlData {
+    id: string;
+    originalUrl: string;
+    shortCode: string;
+    shortUrl: string;
+    clicks: number;
+    createdAt: string;
+  }
+
+  const { data: paginatedUrls } = useQuery<PaginatedResponse>({
+    queryKey: ["urls", currentPage, limit],
+    queryFn: () => urlService.getUserUrls(currentPage, limit),
     refetchInterval: 30000,
   });
 
@@ -89,7 +107,35 @@ export default function DashboardPage() {
       }, 2000);
     } catch (err) {}
   };
+  const renderPaginationButtons = () => {
+    if (!paginatedUrls) return null;
 
+    return (
+      <div className="flex justify-center gap-2 mt-6">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 rounded-md bg-gray-100 text-gray-800 disabled:opacity-50 hover:bg-gray-200 transition-colors"
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2 text-gray-600">
+          Page {currentPage} of {paginatedUrls.totalPages}
+        </span>
+        <button
+          onClick={() =>
+            setCurrentPage((prev) =>
+              Math.min(prev + 1, paginatedUrls.totalPages)
+            )
+          }
+          disabled={currentPage === paginatedUrls.totalPages}
+          className="px-4 py-2 rounded-md bg-gray-100 text-gray-800 disabled:opacity-50 hover:bg-gray-200 transition-colors"
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -123,7 +169,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6">
-        {urls.map((url: any) => (
+        {paginatedUrls?.data.map((url: any) => (
           <div key={url.id} className="bg-white p-6 rounded-lg shadow-md">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -233,6 +279,7 @@ export default function DashboardPage() {
           </div>
         ))}
       </div>
+      {renderPaginationButtons()}
     </div>
   );
 }
