@@ -115,7 +115,7 @@ export default function DashboardPage() {
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md"
+          className="px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
         >
           Previous
         </button>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
             )
           }
           disabled={currentPage === paginatedUrls?.totalPages}
-          className="px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md"
+          className="px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
         >
           Next
         </button>
@@ -163,7 +163,7 @@ export default function DashboardPage() {
           <button
             type="submit"
             disabled={createUrlMutation.isPending}
-            className="w-full sm:w-auto px-6 py-2 sm:py-2.5 text-sm sm:text-base"
+            className="w-full sm:w-auto px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white hover:bg-blue-700 transition-colors rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
             {createUrlMutation.isPending ? "Creating..." : "Shorten"}
           </button>
