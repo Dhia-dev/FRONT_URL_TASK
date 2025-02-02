@@ -111,35 +111,37 @@ export default function DashboardPage() {
     if (!paginatedUrls) return null;
 
     return (
-      <div className="flex justify-center gap-2 mt-6">
+      <div className="flex justify-center items-center gap-2 mt-6">
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-4 py-2 rounded-md bg-gray-100 text-gray-800 disabled:opacity-50 hover:bg-gray-200 transition-colors"
+          className="px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md"
         >
           Previous
         </button>
-        <span className="px-4 py-2 text-gray-600">
-          Page {currentPage} of {paginatedUrls.totalPages}
+        <span className="px-3 sm:px-4 py-2 text-sm sm:text-base">
+          Page {currentPage} of {paginatedUrls?.totalPages}
         </span>
         <button
           onClick={() =>
             setCurrentPage((prev) =>
-              Math.min(prev + 1, paginatedUrls.totalPages)
+              Math.min(prev + 1, paginatedUrls?.totalPages || 1)
             )
           }
-          disabled={currentPage === paginatedUrls.totalPages}
-          className="px-4 py-2 rounded-md bg-gray-100 text-gray-800 disabled:opacity-50 hover:bg-gray-200 transition-colors"
+          disabled={currentPage === paginatedUrls?.totalPages}
+          className="px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md"
         >
           Next
         </button>
       </div>
     );
   };
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pt-20">
+      {/* Section création d'URL */}
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
           Create Short URL
         </h2>
         <form
@@ -147,34 +149,39 @@ export default function DashboardPage() {
             e.preventDefault();
             createUrlMutation.mutate(url);
           }}
-          className="flex gap-4"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4"
         >
           <input
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Enter URL to shorten"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 sm:py-2.5 border border-gray-300 rounded-md"
             required
             pattern="https?://.+"
           />
           <button
             type="submit"
             disabled={createUrlMutation.isPending}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full sm:w-auto px-6 py-2 sm:py-2.5 text-sm sm:text-base"
           >
             {createUrlMutation.isPending ? "Creating..." : "Shorten"}
           </button>
         </form>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4 sm:gap-6">
         {paginatedUrls?.data.map((url: any) => (
-          <div key={url.id} className="bg-white p-6 rounded-lg shadow-md">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            key={url.id}
+            className="bg-white p-4 sm:p-6 rounded-lg shadow-md"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <p className="text-sm text-gray-500">Original URL</p>
-                <p className="text-gray-800 truncate">{url.originalUrl}</p>
+                <p className="text-sm sm:text-base text-gray-800 truncate">
+                  {url.originalUrl}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Short URL</p>
@@ -182,13 +189,13 @@ export default function DashboardPage() {
                   <Link
                     href={`${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`}
                     target="_blank"
-                    className="text-blue-600 hover:text-blue-800 truncate"
+                    className="text-sm sm:text-base text-blue-600 hover:text-blue-800 truncate"
                   >
                     {url.shortUrl}
                   </Link>
                   <button
                     onClick={() => copyToClipboard(url.shortCode)}
-                    className="p-1 hover:bg-gray-100 rounded relative group transition-colors"
+                    className="p-1 hover:bg-gray-100 rounded relative group"
                   >
                     <div className="hidden group-hover:block absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
                       Copy URL
@@ -224,12 +231,13 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
               <div className="text-sm text-gray-500">
                 Created: {new Date(url.createdAt).toLocaleDateString()}
               </div>
-              <div className="flex items-center gap-4">
-                <span className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full flex items-center gap-1">
+
+              <div className="flex items-center gap-3 sm:gap-4">
+                <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-4 w-4"
@@ -254,7 +262,7 @@ export default function DashboardPage() {
                 </span>
                 <button
                   onClick={() => handleDelete(url.shortCode)}
-                  className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-colors"
+                  className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
                   disabled={deleteUrlMutation.isPending}
                 >
                   <svg
