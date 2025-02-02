@@ -139,7 +139,6 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pt-20">
-      {/* Section création d'URL */}
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
           Create Short URL
