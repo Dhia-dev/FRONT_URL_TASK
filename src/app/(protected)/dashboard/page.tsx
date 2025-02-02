@@ -7,29 +7,14 @@ import Link from "next/link";
 import Swal from "sweetalert2";
 
 export default function DashboardPage() {
-  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [copiedUrl, setCopiedUrl] = useState(null);
   const [url, setUrl] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showQR, setShowQR] = useState(null);
   const limit = 5;
   const queryClient = useQueryClient();
-  interface PaginatedResponse {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    data: UrlData[];
-  }
 
-  interface UrlData {
-    id: string;
-    originalUrl: string;
-    shortCode: string;
-    shortUrl: string;
-    clicks: number;
-    createdAt: string;
-  }
-
-  const { data: paginatedUrls } = useQuery<PaginatedResponse>({
+  const { data: paginatedUrls } = useQuery({
     queryKey: ["urls", currentPage, limit],
     queryFn: () => urlService.getUserUrls(currentPage, limit),
     refetchInterval: 30000,
@@ -70,23 +55,15 @@ export default function DashboardPage() {
         showConfirmButton: false,
       });
     },
-    onError: (error) => {
-      Swal.fire({
-        title: "Error!",
-        text: "Failed to delete the URL.",
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    },
   });
 
-  const handleDelete = async (shortCode: string) => {
+  const handleDelete = async (shortCode) => {
     const result = await Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
+      confirmButtonColor: "#000000",
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
     });
@@ -96,17 +73,15 @@ export default function DashboardPage() {
     }
   };
 
-  const copyToClipboard = async (url: string) => {
+  const copyToClipboard = async (url) => {
     try {
       const fullUrl = `${process.env.NEXT_PUBLIC_API_URL}/${url}`;
       await navigator.clipboard.writeText(fullUrl);
       setCopiedUrl(url);
-
-      setTimeout(() => {
-        setCopiedUrl(null);
-      }, 2000);
+      setTimeout(() => setCopiedUrl(null), 2000);
     } catch (err) {}
   };
+
   const renderPaginationButtons = () => {
     if (!paginatedUrls) return null;
 
@@ -115,11 +90,11 @@ export default function DashboardPage() {
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
-          className="px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-base rounded-md bg-black text-white hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
         >
           Previous
         </button>
-        <span className="px-3 sm:px-4 py-2 text-sm sm:text-base">
+        <span className="px-4 py-2 text-base text-black">
           Page {currentPage} of {paginatedUrls?.totalPages}
         </span>
         <button
@@ -129,7 +104,7 @@ export default function DashboardPage() {
             )
           }
           disabled={currentPage === paginatedUrls?.totalPages}
-          className="px-3 sm:px-4 py-2 text-sm sm:text-base rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-base rounded-md bg-black text-white hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors shadow-lg"
         >
           Next
         </button>
@@ -137,66 +112,84 @@ export default function DashboardPage() {
     );
   };
 
+  const handleShowQR = (shortCode) => {
+    const fullUrl = `${process.env.NEXT_PUBLIC_API_URL}/${shortCode}`;
+    setShowQR(shortCode);
+    Swal.fire({
+      title: "QR Code",
+      html: `
+        <div class="flex flex-col items-center gap-4">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+            fullUrl
+          )}" 
+               alt="QR Code" 
+               class="max-w-full h-auto" />
+          <p class="text-sm text-black">Scan to visit: ${fullUrl}</p>
+        </div>
+      `,
+      showCloseButton: true,
+      showConfirmButton: false,
+    });
+  };
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 pt-20">
-      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
-          Create Short URL
-        </h2>
+    <div className="max-w-6xl mx-auto px-6 lg:px-8 py-8 pt-20">
+      <div className="bg-white rounded-lg shadow-xl p-6 mb-8 hover:shadow-2xl transition-shadow duration-300">
+        <h2 className="text-2xl font-bold text-black mb-6">Create Short URL</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             createUrlMutation.mutate(url);
           }}
-          className="flex flex-col sm:flex-row gap-3 sm:gap-4"
+          className="flex flex-col sm:flex-row gap-4"
         >
           <input
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Enter URL to shorten"
-            className="flex-1 px-4 py-2 sm:py-2.5 border border-gray-300 rounded-md"
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-black focus:border-black"
             required
             pattern="https?://.+"
           />
           <button
             type="submit"
             disabled={createUrlMutation.isPending}
-            className="w-full sm:w-auto px-6 py-2 sm:py-2.5 text-sm sm:text-base bg-blue-600 text-white hover:bg-blue-700 transition-colors rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 py-3 text-base bg-black text-white hover:bg-gray-800 transition-colors rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
           >
             {createUrlMutation.isPending ? "Creating..." : "Shorten"}
           </button>
         </form>
       </div>
 
-      <div className="grid gap-4 sm:gap-6">
-        {paginatedUrls?.data.map((url: any) => (
+      <div className="grid gap-6">
+        {paginatedUrls?.data.map((url) => (
           <div
             key={url.id}
-            className="bg-white p-4 sm:p-6 rounded-lg shadow-md"
+            className="bg-white p-6 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Original URL</p>
-                <p className="text-sm sm:text-base text-gray-800 truncate">
+                <p className="text-sm text-black font-medium">Original URL :</p>
+                <p className="text-base text-black truncate">
                   {url.originalUrl}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Short URL</p>
+                <p className="text-sm text-black font-medium">Short URL :</p>
                 <div className="flex items-center gap-2">
                   <Link
                     href={`${process.env.NEXT_PUBLIC_API_URL}/${url.shortCode}`}
                     target="_blank"
-                    className="text-sm sm:text-base text-blue-600 hover:text-blue-800 truncate"
+                    className="text-base text-black hover:text-gray-600 truncate"
                   >
                     {url.shortUrl}
                   </Link>
                   <button
                     onClick={() => copyToClipboard(url.shortCode)}
-                    className="p-1 hover:bg-gray-100 rounded relative group"
+                    className="p-2 hover:bg-gray-100 rounded relative group"
                   >
-                    <div className="hidden group-hover:block absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                    <div className="hidden group-hover:block absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white px-2 py-1 rounded text-xs whitespace-nowrap">
                       Copy URL
                     </div>
                     <svg
@@ -227,16 +220,38 @@ export default function DashboardPage() {
                       )}
                     </svg>
                   </button>
+                  <button
+                    onClick={() => handleShowQR(url.shortCode)}
+                    className="p-2 hover:bg-gray-100 rounded relative group"
+                  >
+                    <div className="hidden group-hover:block absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white px-2 py-1 rounded text-xs whitespace-nowrap">
+                      Show QR Code
+                    </div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
             <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-black">
                 Created: {new Date(url.createdAt).toLocaleDateString()}
               </div>
 
-              <div className="flex items-center gap-3 sm:gap-4">
-                <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+              <div className="flex items-center gap-4">
+                <span className="inline-flex items-center gap-1.5 bg-black text-white text-sm px-4 py-1.5 rounded-full shadow-md">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-4 w-4"
@@ -261,7 +276,7 @@ export default function DashboardPage() {
                 </span>
                 <button
                   onClick={() => handleDelete(url.shortCode)}
-                  className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded"
+                  className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded shadow-md"
                   disabled={deleteUrlMutation.isPending}
                 >
                   <svg
