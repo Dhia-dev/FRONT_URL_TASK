@@ -1,22 +1,20 @@
-"use client";
-
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { urlService } from "@/services/api/urls";
 
-export default function RedirectPage({
-  params,
-}: {
-  params: { shortCode: string };
-}) {
-  const router = useRouter();
+interface PageProps {
+  params: {
+    shortCode: string;
+  };
+}
 
+export default function RedirectPage({ params }: PageProps) {
+  const router = useRouter();
   const { isLoading } = useQuery({
     queryKey: ["redirect", params.shortCode],
     queryFn: async () => {
       try {
         const response = await urlService.getOriginalUrl(params.shortCode);
-
         window.location.href = response.url;
         return response;
       } catch (error) {
