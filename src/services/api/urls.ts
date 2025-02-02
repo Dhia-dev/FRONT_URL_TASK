@@ -18,4 +18,8 @@ export const urlService = {
     const { data } = await api.get(`/${shortCode}`);
     return data;
   },
+  deleteShortUrl: async (shortCode: string) => {
+    const { data } = await api.delete(`/${shortCode}`);
+    return data;
+  },
 };
